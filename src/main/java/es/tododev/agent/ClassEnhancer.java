@@ -14,6 +14,9 @@ import javassist.ByteArrayClassPath;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
+import javassist.NotFoundException;
+import javassist.bytecode.CodeAttribute;
+import javassist.bytecode.LocalVariableAttribute;
 
 public class ClassEnhancer implements ClassFileTransformer {
 
@@ -61,7 +64,7 @@ public class ClassEnhancer implements ClassFileTransformer {
                         for (CtMethod ctMethod : ctMethods) {
                             if (ctMethod.getName().equals(method)) {
                                 LOGGER.log(Level.INFO, () -> "Enhance " + clazz + "#" + method);
-                                ctMethod.insertBefore(createJavaString());
+                                ctMethod.insertBefore(createJavaString(ctMethod));
                             }
                         }
                     }
@@ -77,11 +80,14 @@ public class ClassEnhancer implements ClassFileTransformer {
         return byteCode;
     }
 
-    private String createJavaString() {
+    private String createJavaString(CtMethod ctMethod) throws NotFoundException {
         StringBuilder sb = new StringBuilder();
-        sb.append("{StringBuilder content = new StringBuilder(\"Stack Trace\");");
+        sb.append("{StringBuilder content = new StringBuilder(\"Stack Trace of method with arguments \");");
+        for (int i=1;i<=ctMethod.getParameterTypes().length;i++) {
+            sb.append("content.append($" + i + ").append(\"|\");");
+        }
         sb.append("StackTraceElement[] stack = Thread.currentThread().getStackTrace();");
-        sb.append("for (int i=0;i<stack.length;i++) {");
+        sb.append("for (int i=1;i<stack.length;i++) {");
         sb.append("StackTraceElement item = stack[i];");
         sb.append("content.append(\"\\n    \").append(item.getClassName()).append(\".\");");
         sb.append("content.append(item.getMethodName()).append(\"(\").append(item.getLineNumber()).append(\")\");");
