@@ -82,7 +82,7 @@ public class ClassEnhancer implements ClassFileTransformer {
 
     private String createJavaString(CtMethod ctMethod) throws NotFoundException {
         StringBuilder sb = new StringBuilder();
-        sb.append("{StringBuilder content = new StringBuilder(\"Stack Trace of method with arguments \");");
+        sb.append("{StringBuilder content = new StringBuilder(\"Stack Trace of \" + Thread.currentThread() + \" with arguments \");");
         for (int i=1;i<=ctMethod.getParameterTypes().length;i++) {
             sb.append("content.append($" + i + ").append(\"|\");");
         }
