@@ -15,6 +15,13 @@ This is specially useful for generated runtime classes, like proxies (JPA entiti
 
 Then you can use a decompiler in the generated class to see the source code.
 
+### es.tododev.agent.ClassEnhancer
+
+It will append code in existing class#method specified by -Dclass.method. Currently it prints the stack trace.
+
+For example -Dclass.method=Info#setText,Info#getText,Main#main.
+
+
 ## 1 minute tutorial with Linux
 
 We are going to execute the example.jar with the agent es.tododev.agent.ClassPrinter. This will generate the class files specified in -Dpackages.to.inspect=java/util,es/tododev/example in the folder -Dclassprinter.output.dir=./generated
@@ -23,10 +30,6 @@ We are going to execute the example.jar with the agent es.tododev.agent.ClassPri
 
 `$ mvn clean package`
 
-`$ java -Dclass.strategy=es.tododev.agent.ClassPrinter -Dpackages.to.inspect=java/util,es/tododev/example -Dclassprinter.output.dir=./generated -javaagent:target/agent-0.1.jar -cp example.jar:javassist-3.12.1.GA.jar es.tododev.example.Main`
+`$ java -Dclass.strategy=es.tododev.agent.ClassEnhancer,es.tododev.agent.ClassPrinter -Dpackages.to.inspect=java/util,es/tododev/example -Dclassprinter.output.dir=./generated -Dclass.method=Info#setText,Main#main -javaagent:target/agent-0.1.jar -cp example.jar:javassist.jar es.tododev.example.Main`
 
 `$ cat ./generated/es/tododev/example/Main.class`
-
-## What is next
-
-I plan to create a new agent to measure times in the methods invokations.

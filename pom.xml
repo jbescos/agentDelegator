@@ -45,9 +45,11 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>javassist</groupId>
-			<artifactId>javassist</artifactId>
-			<version>3.12.1.GA</version>
+			<groupId>org.ow2.asm</groupId>
+			<artifactId>asm-all</artifactId>
+			<scope>system</scope>
+			<version>5.2</version>
+			<systemPath>${project.basedir}/javassist.jar</systemPath>
 		</dependency>
 	</dependencies>
 

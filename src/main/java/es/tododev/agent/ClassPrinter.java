@@ -6,9 +6,10 @@ import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ClassPrinter implements ClassFileTransformer{
+public class ClassPrinter implements ClassFileTransformer {
 
     private static final Logger LOGGER = Logger.getLogger(ClassPrinter.class.getName());
     private static final String OUTPUT_DIR_PROP = "classprinter.output.dir";
@@ -31,6 +32,7 @@ public class ClassPrinter implements ClassFileTransformer{
         file.getParentFile().mkdirs();
         try (FileOutputStream fos = new FileOutputStream(file)) {
             fos.write(classfileBuffer);
+            LOGGER.log(Level.FINE, () -> "Created: " + filePath);
         } catch (IOException e) {
             throw new IllegalStateException("Cannot create " + filePath, e);
         }

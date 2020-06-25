@@ -27,7 +27,7 @@ public class ClassInterceptorDelegator implements ClassFileTransformer {
             PACKAGES_TO_INSPECT = packages.split(",");
         }
         if (CLASS_STRATEGY == null) {
-            LOGGER.warning(PACKAGES_TO_INSPECT_PROP + " was not specified. It will not intercept anything. You can specify the different strategies separated by coma. For example: " + CLASS_STRATEGY_PROP + "=" + ClassPrinter.class.getName() + "," + TimerLogger.class.getName());
+            LOGGER.warning(PACKAGES_TO_INSPECT_PROP + " was not specified. It will not intercept anything. You can specify the different strategies separated by coma. For example: " + CLASS_STRATEGY_PROP + "=" + ClassPrinter.class.getName() + "," + ClassEnhancer.class.getName());
         } else {
             String[] classes = CLASS_STRATEGY.split(",");
             for (String clazz : classes) {
@@ -46,12 +46,13 @@ public class ClassInterceptorDelegator implements ClassFileTransformer {
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
             ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+        LOGGER.log(Level.FINEST, () -> className);
         byte[] byteCode = classfileBuffer;
         try {
             if (isPackageToInspect(className)) {
                 for (ClassFileTransformer transformer : STRATEGIES) {
                     LOGGER.fine(() -> String.format("Running %s in %s", transformer, className));
-                    transformer.transform(loader, className, classBeingRedefined, protectionDomain, classfileBuffer);
+                    byteCode = transformer.transform(loader, className, classBeingRedefined, protectionDomain, byteCode);
                 }
             } else {
                 LOGGER.fine(() -> String.format("Skipping %s", className));
