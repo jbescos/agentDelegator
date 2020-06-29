@@ -91,7 +91,7 @@ public class ClassEnhancer implements ClassFileTransformer {
         sb.append("StackTraceElement item = stack[i];");
         sb.append("content.append(\"\\n    \").append(item.getClassName()).append(\".\");");
         sb.append("content.append(item.getMethodName()).append(\"(\").append(item.getLineNumber()).append(\")\");");
-        sb.append("content.append(\"[\").append(item.getFileName()).append(\"]\");");
+        sb.append("content.append(\"[\").append(Class.forName(item.getClassName()).getProtectionDomain().getCodeSource().getLocation()).append(\"]\");");
         sb.append("}");
         sb.append("System.out.println(content.toString());}");
         return sb.toString();
