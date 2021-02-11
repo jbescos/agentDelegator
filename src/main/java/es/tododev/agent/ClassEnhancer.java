@@ -58,7 +58,7 @@ public class ClassEnhancer implements ClassFileTransformer {
                     code = AFTER_CLASS_METHOD_CODE.get(key);
                     if (code != null) {
                         LOGGER.log(Level.FINE, "Enhance after " + key);
-                        ctMethod.insertAfter(code);
+                        ctMethod.insertAfter(code, true);
                     }
                 }
                 return ctClass.toBytecode();
