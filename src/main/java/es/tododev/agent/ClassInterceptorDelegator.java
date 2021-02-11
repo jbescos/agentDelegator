@@ -15,7 +15,7 @@ public class ClassInterceptorDelegator implements ClassFileTransformer {
     private static final String PACKAGES_TO_INSPECT[];
     private static final String CLASS_STRATEGY_PROP = "class.strategy";
     private static final String CLASS_STRATEGY;
-    private static final List<ClassFileTransformer> STRATEGIES = new ArrayList<>();
+    private static final List<ClassFileTransformer> STRATEGIES = new ArrayList<ClassFileTransformer>();
     
     static {
         String packages = System.getProperty(PACKAGES_TO_INSPECT_PROP);
@@ -46,16 +46,16 @@ public class ClassInterceptorDelegator implements ClassFileTransformer {
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
             ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
-        LOGGER.log(Level.FINEST, () -> className);
+        LOGGER.log(Level.FINEST, className);
         byte[] byteCode = classfileBuffer;
         try {
             if (isPackageToInspect(className)) {
                 for (ClassFileTransformer transformer : STRATEGIES) {
-                    LOGGER.fine(() -> String.format("Running %s in %s", transformer, className));
+                    LOGGER.fine(String.format("Running %s in %s", transformer, className));
                     byteCode = transformer.transform(loader, className, classBeingRedefined, protectionDomain, byteCode);
                 }
             } else {
-                LOGGER.fine(() -> String.format("Skipping %s", className));
+                LOGGER.fine(String.format("Skipping %s", className));
             }
         } catch (Throwable t) {
             LOGGER.log(Level.SEVERE, "Error transforming class " + className, t);

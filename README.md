@@ -39,5 +39,5 @@ The format of the file must follow the next: fully.qualified.class.name#method.t
 
 Example of usage:
 
-`$ java -Dclass.strategy=es.tododev.agent.ClassEnhancer2 -Dpackages.to.inspect=es/tododev/example -Denhanced.dir=./classEnhancer2Code -javaagent:target/agent-0.1.jar -cp example.jar:javassist.jar es.tododev.example.Main`
+`$ java -Dclass.strategy=es.tododev.agent.ClassEnhancer -Dpackages.to.inspect=es/tododev/example -Denhanced.dir=./classEnhancer2Code -javaagent:target/agent-0.1.jar -cp example.jar:javassist.jar es.tododev.example.Main`
 

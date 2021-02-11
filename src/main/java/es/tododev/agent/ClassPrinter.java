@@ -30,11 +30,21 @@ public class ClassPrinter implements ClassFileTransformer {
         String filePath = OUTPUT_DIR + "/" + className + ".class";
         File file = new File(filePath);
         file.getParentFile().mkdirs();
-        try (FileOutputStream fos = new FileOutputStream(file)) {
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(file);
             fos.write(classfileBuffer);
-            LOGGER.log(Level.FINE, () -> "Created: " + filePath);
+            LOGGER.log(Level.FINE, "Created: " + filePath);
         } catch (IOException e) {
             throw new IllegalStateException("Cannot create " + filePath, e);
+        } finally {
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    throw new IllegalStateException("Cannot close " + filePath, e);
+                }
+            }
         }
         return classfileBuffer;
     }
