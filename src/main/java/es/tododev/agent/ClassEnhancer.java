@@ -1,12 +1,13 @@
 package es.tododev.agent;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -14,34 +15,23 @@ import javassist.ByteArrayClassPath;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
-import javassist.NotFoundException;
-import javassist.bytecode.CodeAttribute;
-import javassist.bytecode.LocalVariableAttribute;
 
 public class ClassEnhancer implements ClassFileTransformer {
 
     private static final Logger LOGGER = Logger.getLogger(ClassEnhancer.class.getName());
-    private static final String CLASS_METHOD_PROP = "class.method";
-    private static final Map<String, List<String>> CLASS_METHODS = new HashMap<>();
+    private static final String ENHANCED_DIR_PROP = "enhanced.dir";
+    private static final Map<String, String> BEFORE_CLASS_METHOD_CODE = new HashMap<>();
+    private static final Map<String, String> AFTER_CLASS_METHOD_CODE = new HashMap<>();
     private final ClassPool pool;
 
     static {
-        String value = System.getProperty(CLASS_METHOD_PROP);
+        String value = System.getProperty(ENHANCED_DIR_PROP);
         if (value == null) {
             throw new IllegalStateException(
-                    CLASS_METHOD_PROP + " was not provided. For example: -Dclass.method=Info#setText,Info#getText,Main#main");
+                    ENHANCED_DIR_PROP + " was not provided. For example: -Denhanced.dir=/home/user/code");
         }
-        String classMethods[] = value.split(",");
-        for (String classMethod : classMethods) {
-            String pair[] = classMethod.split("#");
-            List<String> methods = CLASS_METHODS.get(pair[0]);
-            if (methods == null) {
-                methods = new ArrayList<>();
-                CLASS_METHODS.put(pair[0], methods);
-            }
-            methods.add(pair[1]);
-        }
-        LOGGER.info("It will intercept: " + CLASS_METHODS);
+        addCode(BEFORE_CLASS_METHOD_CODE, value + "/before");
+        addCode(AFTER_CLASS_METHOD_CODE, value + "/after");
     }
 
     public ClassEnhancer() {
@@ -52,49 +42,50 @@ public class ClassEnhancer implements ClassFileTransformer {
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
             ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
         byte[] byteCode = classfileBuffer;
-        String classSplit[] = className.split("/");
-        String clazz = classSplit[classSplit.length - 1];
-        if (CLASS_METHODS.containsKey(clazz)) {
-            try {
-                pool.insertClassPath(new ByteArrayClassPath(className, classfileBuffer));
-                CtClass ctClass = pool.get(className.replaceAll("/", "."));
-                if (!ctClass.isFrozen()) {
-                    CtMethod ctMethods[] = ctClass.getDeclaredMethods();
-                    for (String method : CLASS_METHODS.get(clazz)) {
-                        for (CtMethod ctMethod : ctMethods) {
-                            if (ctMethod.getName().equals(method)) {
-                                LOGGER.log(Level.INFO, () -> "Enhance " + clazz + "#" + method);
-                                ctMethod.insertBefore(createJavaString(ctMethod));
-                            }
-                        }
+        try {
+            pool.insertClassPath(new ByteArrayClassPath(className, classfileBuffer));
+            String packageClass = className.replaceAll("/", ".");
+            CtClass ctClass = pool.get(packageClass);
+            if (!ctClass.isFrozen()) {
+                CtMethod ctMethods[] = ctClass.getDeclaredMethods();
+                for (CtMethod ctMethod : ctMethods) {
+                    String key = packageClass + "#" + ctMethod.getName();
+                    String code = BEFORE_CLASS_METHOD_CODE.get(key);
+                    if (code != null) {
+                        LOGGER.log(Level.FINE, () -> "Enhance before " + key);
+                        ctMethod.insertBefore(code);
                     }
-                    return ctClass.toBytecode();
-                } else {
-                    LOGGER.log(Level.WARNING, () -> className + " cannot be modified");
+                    code = AFTER_CLASS_METHOD_CODE.get(key);
+                    if (code != null) {
+                        LOGGER.log(Level.FINE, () -> "Enhance after " + key);
+                        ctMethod.insertAfter(code);
+                    }
                 }
-            } catch (Exception e) {
-                throw new IllegalStateException("Cannot enhance " + className, e);
+                return ctClass.toBytecode();
+            } else {
+                LOGGER.log(Level.WARNING, () -> className + " cannot be modified");
             }
-
+        } catch (Exception e) {
+            throw new IllegalStateException("Cannot enhance " + className, e);
         }
+
         return byteCode;
     }
 
-    private String createJavaString(CtMethod ctMethod) throws NotFoundException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{StringBuilder content = new StringBuilder(\"Stack Trace of \" + Thread.currentThread() + \" with arguments \");");
-        for (int i=1;i<=ctMethod.getParameterTypes().length;i++) {
-            sb.append("content.append($" + i + ").append(\"|\");");
+    private static void addCode(Map<String, String> codeContainer, String folder) {
+        File dir = new File(folder);
+        for (File child : dir.listFiles()) {
+            StringBuilder builder = new StringBuilder();
+            try (Scanner scanner = new Scanner(child)) {
+                while(scanner.hasNextLine()) {
+                    builder.append(scanner.nextLine()).append(System.lineSeparator());
+                }
+            } catch (FileNotFoundException e) {
+                LOGGER.log(Level.SEVERE, "Cannot load " + child, e);
+            }
+            String key = child.getName().split("\\.txt")[0];
+            codeContainer.put(key, builder.toString());
         }
-        sb.append("StackTraceElement[] stack = Thread.currentThread().getStackTrace();");
-        sb.append("for (int i=1;i<stack.length;i++) {");
-        sb.append("StackTraceElement item = stack[i];");
-        sb.append("content.append(\"\\n    \").append(item.getClassName()).append(\".\");");
-        sb.append("content.append(item.getMethodName()).append(\"(\").append(item.getLineNumber()).append(\")\");");
-        sb.append("content.append(\"[\").append(Class.forName(item.getClassName()).getProtectionDomain().getCodeSource().getLocation()).append(\"]\");");
-        sb.append("}");
-        sb.append("System.out.println(content.toString());}");
-        return sb.toString();
+        LOGGER.info(folder + ": " + codeContainer.keySet());
     }
-
 }

@@ -6,6 +6,10 @@ If you use your own class, it must implement java.lang.instrument.ClassFileTrans
 
 Optionally you can specify -Dpackages.to.inspect to specify the packages 
 
+## Installation:
+
+`$ mvn clean package`
+
 ## Existing agents you can use for -Dclass.strategy:
 ### es.tododev.agent.ClassPrinter
 
@@ -15,21 +19,25 @@ This is specially useful for generated runtime classes, like proxies (JPA entiti
 
 Then you can use a decompiler in the generated class to see the source code.
 
+Example of usage:
+
+`$ java -Dclass.strategy=es.tododev.agent.ClassPrinter -Dpackages.to.inspect=java/util,es/tododev/example -Dclassprinter.output.dir=./generated -javaagent:target/agent-0.1.jar -cp example.jar:javassist.jar es.tododev.example.Main`
+
+Then check the generated classes in the folder ./generated
+
 ### es.tododev.agent.ClassEnhancer
 
-It will append code in existing class#method specified by -Dclass.method. Currently it prints the stack trace.
+It will enhance classes with custom code in the directory specified in -Denhanced.dir.
 
-For example -Dclass.method=Info#setText,Info#getText,Main#main.
+For example: -Denhanced.dir=./classEnhancer2Code
 
+Inside that directory, there should be 2 directories: before and after.
 
-## 1 minute tutorial with Linux
+In the before directory we will locate files in .txt format having the code to be executed at the beggining of the method. After directory is the place for code to be executed at the end of the method.
 
-We are going to execute the example.jar with the agent es.tododev.agent.ClassPrinter. This will generate the class files specified in -Dpackages.to.inspect=java/util,es/tododev/example in the folder -Dclassprinter.output.dir=./generated
+The format of the file must follow the next: fully.qualified.class.name#method.txt
 
-`$ cd agentDelegator`
+Example of usage:
 
-`$ mvn clean package`
+`$ java -Dclass.strategy=es.tododev.agent.ClassEnhancer2 -Dpackages.to.inspect=es/tododev/example -Denhanced.dir=./classEnhancer2Code -javaagent:target/agent-0.1.jar -cp example.jar:javassist.jar es.tododev.example.Main`
 
-`$ java -Dclass.strategy=es.tododev.agent.ClassEnhancer,es.tododev.agent.ClassPrinter -Dpackages.to.inspect=java/util,es/tododev/example -Dclassprinter.output.dir=./generated -Dclass.method=Info#setText,Main#main -javaagent:target/agent-0.1.jar -cp example.jar:javassist.jar es.tododev.example.Main`
-
-`$ cat ./generated/es/tododev/example/Main.class`

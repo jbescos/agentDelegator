@@ -1,0 +1,3 @@
+System.out.println("es.tododev.example.Main#main has been intercepted AFTER");
+System.out.println("Dumping the stack trace");
+Thread.currentThread().dumpStack();

@@ -1,0 +1,1 @@
+System.out.println("es.tododev.example.Info#setText has been intercepted AFTER");
