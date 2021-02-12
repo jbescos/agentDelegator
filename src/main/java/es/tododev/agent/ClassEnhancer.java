@@ -38,6 +38,7 @@ public class ClassEnhancer implements ClassFileTransformer {
         pool = ClassPool.getDefault();
     }
 
+    // See http://www.javassist.org/tutorial/tutorial2.html
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
             ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
@@ -50,15 +51,22 @@ public class ClassEnhancer implements ClassFileTransformer {
                 CtMethod ctMethods[] = ctClass.getDeclaredMethods();
                 for (CtMethod ctMethod : ctMethods) {
                     String key = packageClass + "#" + ctMethod.getName();
-                    String code = BEFORE_CLASS_METHOD_CODE.get(key);
-                    if (code != null) {
-                        LOGGER.log(Level.FINE, "Enhance before " + key);
-                        ctMethod.insertBefore(code);
-                    }
-                    code = AFTER_CLASS_METHOD_CODE.get(key);
-                    if (code != null) {
-                        LOGGER.log(Level.FINE, "Enhance after " + key);
-                        ctMethod.insertAfter(code, true);
+                    try {
+                        String code = BEFORE_CLASS_METHOD_CODE.get(key);
+                        if (code != null) {
+                            LOGGER.log(Level.FINE, "Enhance before " + key);
+                            ctMethod.insertBefore(code);
+                            CtClass ctException = pool.get("java.lang.Throwable");
+                            // Print stack trace and re-throw the exception
+                            ctMethod.addCatch("{$e.printStackTrace(); throw $e;}", ctException);
+                        }
+                        code = AFTER_CLASS_METHOD_CODE.get(key);
+                        if (code != null) {
+                            LOGGER.log(Level.FINE, "Enhance after " + key);
+                            ctMethod.insertAfter(code, true);
+                        }
+                    } catch(Exception e) {
+                        throw new IllegalStateException("Cannot enhance " + key, e);
                     }
                 }
                 return ctClass.toBytecode();
@@ -66,7 +74,7 @@ public class ClassEnhancer implements ClassFileTransformer {
                 LOGGER.log(Level.WARNING, className + " cannot be modified");
             }
         } catch (Exception e) {
-            throw new IllegalStateException("Cannot enhance " + className, e);
+            throw new IllegalStateException("Unexpected error in ClassEnhancer processing " + className, e);
         }
 
         return byteCode;
