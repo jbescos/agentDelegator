@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 
 import javassist.ByteArrayClassPath;
 import javassist.ClassPool;
+import javassist.CtBehavior;
 import javassist.CtClass;
 import javassist.CtMethod;
 
@@ -48,27 +49,8 @@ public class ClassEnhancer implements ClassFileTransformer {
             String packageClass = className.replaceAll("/", ".");
             CtClass ctClass = pool.get(packageClass);
             if (!ctClass.isFrozen()) {
-                CtMethod ctMethods[] = ctClass.getDeclaredMethods();
-                for (CtMethod ctMethod : ctMethods) {
-                    String key = packageClass + "#" + ctMethod.getName();
-                    try {
-                        String code = BEFORE_CLASS_METHOD_CODE.get(key);
-                        if (code != null) {
-                            LOGGER.log(Level.FINE, "Enhance before " + key);
-                            ctMethod.insertBefore(code);
-                            CtClass ctException = pool.get("java.lang.Throwable");
-                            // Print stack trace and re-throw the exception
-                            ctMethod.addCatch("{$e.printStackTrace(); throw $e;}", ctException);
-                        }
-                        code = AFTER_CLASS_METHOD_CODE.get(key);
-                        if (code != null) {
-                            LOGGER.log(Level.FINE, "Enhance after " + key);
-                            ctMethod.insertAfter(code, true);
-                        }
-                    } catch(Exception e) {
-                        throw new IllegalStateException("Cannot enhance " + key, e);
-                    }
-                }
+                addCustomCode(packageClass, ctClass.getMethods());
+                addCustomCode(packageClass, ctClass.getConstructors());
                 return ctClass.toBytecode();
             } else {
                 LOGGER.log(Level.WARNING, className + " cannot be modified");
@@ -78,6 +60,30 @@ public class ClassEnhancer implements ClassFileTransformer {
         }
 
         return byteCode;
+    }
+
+    private void addCustomCode(String packageClass, CtBehavior ctBehaviors[]) {
+        for (CtBehavior ctBehavior : ctBehaviors) {
+            String key = packageClass + "#" + ctBehavior.getName().replaceAll("/", ".");
+            LOGGER.log(Level.FINE, "Key: " + key);
+            try {
+                String code = BEFORE_CLASS_METHOD_CODE.get(key);
+                if (code != null) {
+                    LOGGER.log(Level.FINE, "Enhance before " + key);
+                    ctBehavior.insertBefore(code);
+                    CtClass ctException = pool.get("java.lang.Throwable");
+                    // Print stack trace and re-throw the exception
+                    ctBehavior.addCatch("{$e.printStackTrace(); throw $e;}", ctException);
+                }
+                code = AFTER_CLASS_METHOD_CODE.get(key);
+                if (code != null) {
+                    LOGGER.log(Level.FINE, "Enhance after " + key);
+                    ctBehavior.insertAfter(code, true);
+                }
+            } catch(Exception e) {
+                throw new IllegalStateException("Cannot enhance " + key, e);
+            }
+        }
     }
 
     private static void addCode(Map<String, String> codeContainer, String folder) {

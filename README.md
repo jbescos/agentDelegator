@@ -21,7 +21,7 @@ Then you can use a decompiler in the generated class to see the source code.
 
 Example of usage:
 
-`$ java -Dclass.strategy=es.tododev.agent.ClassPrinter -Dpackages.to.inspect=java/util,es/tododev/example -Dclassprinter.output.dir=./generated -javaagent:target/agent-0.1.jar -cp example.jar:javassist-2.5.1.jar es.tododev.example.Main`
+`$ java -Dclass.strategy=es.tododev.agent.ClassPrinter -Dpackages.to.inspect=java/util,es/tododev/example -Dclassprinter.output.dir=./generated -javaagent:target/agent-0.1.jar -cp example.jar:javassist-3.27.0-GA.jar es.tododev.example.Main`
 
 Then check the generated classes in the folder ./generated
 
@@ -39,5 +39,5 @@ The format of the file must follow the next: fully.qualified.class.name#method.t
 
 Example of usage:
 
-`$ java -Dclass.strategy=es.tododev.agent.ClassEnhancer -Dpackages.to.inspect=es/tododev/example -Denhanced.dir=./classEnhancer2Code -javaagent:target/agent-0.1.jar -cp example.jar:javassist-2.5.1.jar es.tododev.example.Main`
+`$ java -Dclass.strategy=es.tododev.agent.ClassEnhancer -Dpackages.to.inspect=es/tododev/example -Denhanced.dir=./classEnhancer2Code -javaagent:target/agent-0.1.jar -cp example.jar:javassist-3.27.0-GA.jar es.tododev.example.Main`
 

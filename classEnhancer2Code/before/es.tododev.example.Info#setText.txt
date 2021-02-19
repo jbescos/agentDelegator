@@ -1,2 +1,2 @@
 System.out.println("es.tododev.example.Info#setText has been intercepted BEFORE");
-System.out.println("Arguments are: " + prefix + ", " + text + ", " + value);
+System.out.println("Arguments are: " + $1 + ", " + $2 + ", " + $3);
