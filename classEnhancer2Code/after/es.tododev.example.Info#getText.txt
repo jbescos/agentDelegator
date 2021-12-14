@@ -1,0 +1,1 @@
+System.out.println("es.tododev.example.Info#getText " + $_ + " has been intercepted AFTER");
