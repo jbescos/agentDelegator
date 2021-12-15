@@ -43,23 +43,19 @@ public class ClassEnhancer implements ClassFileTransformer {
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
             ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
-        byte[] byteCode = classfileBuffer;
         try {
             pool.insertClassPath(new ByteArrayClassPath(className, classfileBuffer));
             String packageClass = className.replaceAll("/", ".");
             CtClass ctClass = pool.get(packageClass);
             if (!ctClass.isFrozen()) {
-                addCustomCode(packageClass, ctClass.getMethods());
-                addCustomCode(packageClass, ctClass.getConstructors());
-                return ctClass.toBytecode();
-            } else {
-                LOGGER.log(Level.WARNING, className + " cannot be modified");
+                ctClass.defrost();
             }
+            addCustomCode(packageClass, ctClass.getMethods());
+            addCustomCode(packageClass, ctClass.getConstructors());
+            return ctClass.toBytecode();
         } catch (Exception e) {
             throw new IllegalStateException("Unexpected error in ClassEnhancer processing " + className, e);
         }
-
-        return byteCode;
     }
 
     private void addCustomCode(String packageClass, CtBehavior ctBehaviors[]) {
@@ -67,9 +63,6 @@ public class ClassEnhancer implements ClassFileTransformer {
             String key = packageClass + "#" + ctBehavior.getName().replaceAll("/", ".");
             LOGGER.log(Level.FINE, "Key: " + key);
             try {
-                if (ctBehavior.getDeclaringClass().isFrozen()) {
-                    ctBehavior.getDeclaringClass().defrost();
-                }
                 String code = BEFORE_CLASS_METHOD_CODE.get(key);
                 if (code != null) {
                     LOGGER.log(Level.FINE, "Enhance before " + key);
