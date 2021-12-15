@@ -67,6 +67,9 @@ public class ClassEnhancer implements ClassFileTransformer {
             String key = packageClass + "#" + ctBehavior.getName().replaceAll("/", ".");
             LOGGER.log(Level.FINE, "Key: " + key);
             try {
+                if (ctBehavior.getDeclaringClass().isFrozen()) {
+                    ctBehavior.getDeclaringClass().defrost();
+                }
                 String code = BEFORE_CLASS_METHOD_CODE.get(key);
                 if (code != null) {
                     LOGGER.log(Level.FINE, "Enhance before " + key);
