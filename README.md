@@ -31,11 +31,17 @@ It will enhance classes with custom code in the directory specified in -Denhance
 
 For example: -Denhanced.dir=./classEnhancer2Code
 
-Inside that directory, there should be 2 directories: before and after.
+Inside that directory, there should be 3 directories: before, after and replace.
 
-In the before directory we will locate files in .txt format having the code to be executed at the beggining of the method. After directory is the place for code to be executed at the end of the method.
+In the before directory we will locate files in .txt format having the code to be executed at the beggining of the method.
+
+After directory is the place for code to be executed at the end of the method.
+
+Replace directory is the place to copy the .class that will be replaced in runtime.
 
 The format of the file must follow the next: fully.qualified.class.name#method.txt
+
+For the replacer, the file must follow the next: fully.qualified.class.name.class
 
 Example of usage:
 
