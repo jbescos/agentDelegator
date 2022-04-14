@@ -3,7 +3,7 @@
 	<property file="build.properties" />
 
 	<target name="compile">
-		<javac srcdir="src" destdir="classes" includes="**/*.java" target="1.7">
+		<javac srcdir="src" destdir="classes" includes="**/*.java" target="1.7" source="1.7">
 		</javac>
 	</target>
 	<target name="jar" description="Create a jar for the HelloWorld project">
