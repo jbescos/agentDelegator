@@ -67,10 +67,9 @@ public class ClassEnhancer implements ClassFileTransformer {
                 pool.makeClass(input);
                 LOGGER.log(Level.FINE, "Class: " + packageClass + " has been modified");
                 ctClass = pool.get(packageClass);
-            } else {
-                addCustomCode(packageClass, ctClass.getMethods());
-                addCustomCode(packageClass, ctClass.getConstructors());
             }
+            addCustomCode(packageClass, ctClass.getMethods());
+            addCustomCode(packageClass, ctClass.getConstructors());
             return ctClass.toBytecode();
         } catch (Exception e) {
             throw new IllegalStateException("Unexpected error in ClassEnhancer processing " + className, e);

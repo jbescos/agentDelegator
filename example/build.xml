@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<project name="Example" default="all" basedir=".">
+	<property file="build.properties" />
+
+	<target name="compile">
+		<javac srcdir="src" destdir="classes" includes="**/*.java" target="1.7">
+		</javac>
+	</target>
+	<target name="jar" description="Create a jar for the HelloWorld project">
+		<mkdir dir="classes" />
+		<jar jarfile="example-jdk7.jar" basedir="classes">
+			<manifest>
+				<attribute name="Main-Class" value="es.tododev.example.Main" />
+			</manifest>
+		</jar>
+	</target>
+	<target name="all" depends="compile,jar">
+	</target>
+</project>
