@@ -2,7 +2,6 @@ package es.tododev.agent;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.instrument.ClassFileTransformer;
@@ -75,12 +74,26 @@ public class ClassEnhancer implements ClassFileTransformer {
             throw new IllegalStateException("Unexpected error in ClassEnhancer processing " + className, e);
         }
     }
+    
+    private String getMethodSignature(CtClass[] types) {
+        StringBuilder builder = new StringBuilder();
+        for (CtClass type : types) {
+            if (builder.length() != 0) {
+                builder.append(",");
+            }
+            builder.append(type.getName());
+        }
+        builder.insert(0, "(");
+        builder.append(")");
+        return builder.toString();
+    }
 
     private void addCustomCode(String packageClass, CtBehavior ctBehaviors[]) {
         for (CtBehavior ctBehavior : ctBehaviors) {
             String key = packageClass + "#" + ctBehavior.getName().replaceAll("/", ".");
-            LOGGER.log(Level.FINE, "Key: " + key);
             try {
+                key = key + getMethodSignature(ctBehavior.getParameterTypes());
+                LOGGER.log(Level.FINE, "Key: " + key);
                 byte[] code = BEFORE_CLASS_METHOD_CODE.get(key);
                 if (code != null) {
                     LOGGER.log(Level.FINE, "Enhance before " + key);

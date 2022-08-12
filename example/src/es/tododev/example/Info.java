@@ -11,6 +11,8 @@ public class Info {
     public void setText(String prefix, String text, int value) {
         this.text = prefix + text + value;
     }
-    
+    public void setText(String prefix, String text) {
+        this.text = prefix + text;
+    }
     
 }
