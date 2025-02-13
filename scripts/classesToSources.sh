@@ -15,5 +15,11 @@ rm -rf $TARGET_DIR/sources
 jar cf "$JAR_NAME" -C "$TARGET_DIR" .
 
 mkdir -p $TARGET_DIR/sources
-java -jar $SCRIPT_DIR/fernflower.jar $JAR_NAME $TARGET_DIR/sources
-mv $TARGET_DIR/sources/$JAR_NAME $TARGET_DIR/sources/output-sources.jar
+
+java -jar $SCRIPT_DIR/jd-cli.jar --displayLineNumbers $JAR_NAME -od $TARGET_DIR/sources
+
+$SCRIPT_DIR/adjustLines.sh $TARGET_DIR/sources
+
+find "$TARGET_DIR/sources" -type f -name "*.java" | while read -r file; do
+    java -cp $SCRIPT_DIR/bin Main "$file"
+done
