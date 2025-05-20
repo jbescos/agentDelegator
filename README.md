@@ -47,3 +47,11 @@ Example of usage:
 
 `$ java -Dclass.strategy=es.tododev.agent.ClassEnhancer -Dpackages.to.inspect=es/tododev/example -Denhanced.dir=./classEnhancer2Code -javaagent:target/agent-0.1.jar -cp example/example-jdk7.jar:javassist-3.27.0-GA.jar es.tododev.example.Main`
 
+### es.tododev.agent.ExecutionTrace
+
+Given the -Dpackages.to.inspect, it will append code in any method that gets executed, showing a timestamp the class and the method. It is specially useful to debug the execution stack.
+
+Example of usage:
+
+`$ java -Dclass.strategy=es.tododev.agent.ExecutionTrace -Dpackages.to.inspect=java/util,es/tododev/example -javaagent:target/agent-0.1.jar -cp example/example-jdk7.jar:javassist-3.27.0-GA.jar es.tododev.example.Main`
+
